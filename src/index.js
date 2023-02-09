@@ -10,39 +10,55 @@ formaEl.addEventListener('submit', onSubmit)
 window.addEventListener('scroll', onScroll)
 
 
-function onSubmit(e){
+async function onSubmit(e){
     e.preventDefault();
     galleryEl.innerHTML ='';
     page=1;
 
-    onFetch().then(images =>{
-      onCheck(images)
-      onRender(images)
-    })
+    onCheck(await onFetch())
+    onRender(await onFetch())
+
+    // варіант then()
+    // onFetch().then(images =>{
+    //   onCheck(images)
+    //   onRender(images)
+    // })
+
+
     // e.currentTarget.reset();
 }
 
 
 
-function onScroll(e){
+async function onScroll(e){
   const documentRec = document.querySelector(".gallery").getBoundingClientRect();
 
-    console.log(page)
+    // console.log(page)
     
   if(documentRec.bottom < document.documentElement.clientHeight + 200){
     page += 1
-    console.log(page)
-    onFetch().then(onRender)
+    // console.log(page)
+    // try {
+      onRender(await onFetch())
+    // } catch (error) {
+    //   Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+    // }
+
+    
+    // варіант then()
+    // onFetch().then(onRender)
   }
-  console.log(documentRec.bottom, document.documentElement.clientHeight)
-  if(documentRec.bottom < document.documentElement.clientHeight){
-    Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-  }
+  ///Варіант 2 - повідомлення в кінці галареї
+  // console.log(documentRec.bottom, document.documentElement.clientHeight)
+  // console.log(e)
+  // if(documentRec.bottom < document.documentElement.clientHeight){
+  //   Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+  // }
 }
 
 
 
-function onFetch(){
+async function onFetch(){
   const BASE_URL = 'https://pixabay.com/api/'
   const options = new URLSearchParams ({
       key: '33483798-cfc94c7459e9d93c6a5457b44',
@@ -51,8 +67,19 @@ function onFetch(){
       safesearch : true,
       per_page: 40,
   })
-
-  return fetch(`${BASE_URL}?${options}&page=${page}`).then(response => response.json())
+    
+    // try {
+      const response = await fetch(`${BASE_URL}?${options}&page=${page}`);
+      const images = await response.json()
+      return images
+    // } catch (error) {
+    //   Notiflix.Notify.failure('Помилка запита');
+    // }
+    
+  
+  
+  // варіант then()
+  // return fetch(`${BASE_URL}?${options}&page=${page}`).then(response => response.json())
 }
 
 
@@ -92,6 +119,7 @@ function onCheck(images){
     return
   }else{
     Notiflix.Notify.success(`Hooray! We found ${images.totalHits} images.`);
+    return
   }
 }
 
