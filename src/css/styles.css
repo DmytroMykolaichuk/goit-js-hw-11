@@ -3,16 +3,7 @@
     margin: 0;
     border: none;
 }
-img{
-    display: block;
-    width:100%;
-    height: 270px;
-    /* object-fit: auto; */
-}
-a{
-    color: black;
-    text-decoration: none;
-}
+
 .container{
     padding:0 20px;
     max-width: 1600px;
@@ -24,6 +15,7 @@ header {
 }
 
 main{
+    background-color: rgb(248, 246, 243);
     padding: 20px 0;
 }
 
@@ -54,11 +46,16 @@ main{
     transition: transform 250ms linear,border-radius 250ms linear,border 250ms linear;
 
 }
-.btn-submit:hover{
+.btn-submit:hover,
+.btn-submit:focus{
     transform: scale(1.4);
     border-radius: 50%;
     border: 1px black solid;
 }
+
+
+
+
 .gallery{
     display: flex;
     gap: 20px;
@@ -67,11 +64,29 @@ main{
 
 .gallery a{
     margin: 0 auto;
+    color: black;
+    text-decoration: none;
     flex-basis: calc((100% - 60px) / 4);
 }
 
+img{
+    display: block;
+    width:100%;
+    height: 270px;
+    transition: transform 250ms linear;
+    /* object-fit: auto; */
+}
+
+img:hover{
+    transform: scale(1.2);
+}
+
+.thumb_image{
+    overflow: hidden;
+}
 
 .info{
+    background-color: aliceblue;
     display: flex;
     gap: 5px;
     justify-content: center;

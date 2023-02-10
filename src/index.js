@@ -1,94 +1,85 @@
 import Notiflix from 'notiflix';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
+import axios from 'axios';
 
-const formaEl = document.querySelector('.search-form')
-const galleryEl= document.querySelector('.gallery')
-let page =1
+const formaEl = document.querySelector('.search-form');
+const galleryEl= document.querySelector('.gallery');
 
-formaEl.addEventListener('submit', onSubmit)
-window.addEventListener('scroll', onScroll)
+const slider = new SimpleLightbox('.gallery a');
 
+let page = 1;
+
+formaEl.addEventListener('submit', onSubmit);
 
 async function onSubmit(e){
-    e.preventDefault();
-    galleryEl.innerHTML ='';
-    page=1;
+  e.preventDefault();
 
-    onCheck(await onFetch())
-    onRender(await onFetch())
+  galleryEl.innerHTML ='';
+  page=1;
 
-    // варіант then()
-    // onFetch().then(images =>{
-    //   onCheck(images)
-    //   onRender(images)
-    // })
+  const res = await onFetch();
 
+  onCheck(res.data);
+  onRender(res.data);
 
-    // e.currentTarget.reset();
+  // варіант then()
+  // onFetch().then(images =>{
+  //   onCheck(images)
+  //   onRender(images)
+  // })
+  imageObserver.observe(galleryEl.lastElementChild)
 }
 
 
+const imageObserver = new IntersectionObserver(async ([entry], obsorver)=>{
+  
+  if(entry.isIntersecting){
+    page+=1
+    let resp = await onFetch()
 
-async function onScroll(e){
-  const documentRec = document.querySelector(".gallery").getBoundingClientRect();
+    if(resp.data.totalHits <= galleryEl.children.length){
+      Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+      obsorver.unobserve(entry.target)
+      return
+    }
 
-    // console.log(page)
-    
-  if(documentRec.bottom < document.documentElement.clientHeight + 200){
-    page += 1
-    // console.log(page)
-    // try {
-      onRender(await onFetch())
-    // } catch (error) {
-    //   Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-    // }
-
-    
-    // варіант then()
-    // onFetch().then(onRender)
+    obsorver.unobserve(entry.target)
+    onRender(resp.data)
+    imageObserver.observe(galleryEl.lastElementChild)
   }
-  ///Варіант 2 - повідомлення в кінці галареї
-  // console.log(documentRec.bottom, document.documentElement.clientHeight)
-  // console.log(e)
-  // if(documentRec.bottom < document.documentElement.clientHeight){
-  //   Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-  // }
-}
-
-
+},
+{rootMargin: '150px',}
+)
 
 async function onFetch(){
-  const BASE_URL = 'https://pixabay.com/api/'
+  const BASE_URL = 'https://pixabay.com/api/';
   const options = new URLSearchParams ({
       key: '33483798-cfc94c7459e9d93c6a5457b44',
       q: formaEl.elements.searchQuery.value,
       orientation: 'horizontal',
       safesearch : true,
       per_page: 40,
-  })
-    
-    // try {
-      const response = await fetch(`${BASE_URL}?${options}&page=${page}`);
-      const images = await response.json()
-      return images
-    // } catch (error) {
-    //   Notiflix.Notify.failure('Помилка запита');
-    // }
-    
-  
-  
+  });
+
+    try {
+      const response = await axios.get(`${BASE_URL}?${options}&page=${page}`);
+      return response;
+    }catch (error){
+      Notiflix.Notify.failure('Помилка виклика');
+    }
+      
   // варіант then()
   // return fetch(`${BASE_URL}?${options}&page=${page}`).then(response => response.json())
-}
-
-
+};
 function onRender(images){
-  let render =''
+  let render ='';
 
 images.hits.map(({webformatURL, largeImageURL, tags, likes, views, comments, downloads}) => {
-    render+=`<a href='${largeImageURL}'><div class="photo-card">
-    <img src="${webformatURL}" alt="${tags}" loading="lazy"/>
+    render+=`<a href='${largeImageURL}'class='link-slider'>
+    <div class="photo-card">
+    <div class='thumb_image'><img src="${webformatURL}" alt="${tags}" loading="lazy"/></div>
+    
     <div class="info">
       <p class="info-item">
         <b>Likes</b><span>${likes}</span>
@@ -105,21 +96,15 @@ images.hits.map(({webformatURL, largeImageURL, tags, likes, views, comments, dow
     </div>
   </div>
   </a>`
-})
-galleryEl.insertAdjacentHTML('beforeend', render)
-new SimpleLightbox('.gallery a').refresh();
-}
-
-
-
-function onCheck(images){
-  if(images.totalHits === 0){
+});
+galleryEl.insertAdjacentHTML('beforeend', render);
+slider.refresh();
+};
+function onCheck(res){
+  if(res.totalHits === 0){
     Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
     galleryEl.innerHTML = '';
-    return
   }else{
-    Notiflix.Notify.success(`Hooray! We found ${images.totalHits} images.`);
-    return
-  }
-}
-
+    Notiflix.Notify.success(`Hooray! We found ${res.totalHits} images.`);
+  };
+};
