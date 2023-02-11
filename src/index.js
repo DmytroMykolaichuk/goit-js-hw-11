@@ -9,6 +9,7 @@ const galleryEl= document.querySelector('.gallery');
 const slider = new SimpleLightbox('.gallery a');
 
 let page = 1;
+let limit =0;
 
 formaEl.addEventListener('submit', onSubmit);
 
@@ -17,8 +18,10 @@ async function onSubmit(e){
 
   galleryEl.innerHTML ='';
   page=1;
+  
 
   const res = await onFetch();
+  limit=res.data.totalHits
 
   onCheck(res.data);
   onRender(res.data);
@@ -33,17 +36,17 @@ async function onSubmit(e){
 
 
 const imageObserver = new IntersectionObserver(async ([entry], obsorver)=>{
+
+  if(limit <= galleryEl.children.length){
+    galleryEl.insertAdjacentHTML('beforeend',`<p class='end_galerry'>We're sorry, but you've reached the end of search results.</p>`)
+    // Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+    obsorver.unobserve(entry.target)
+    return
+  }
   
   if(entry.isIntersecting){
     page+=1
     let resp = await onFetch()
-
-    if(resp.data.totalHits <= galleryEl.children.length){
-      Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-      obsorver.unobserve(entry.target)
-      return
-    }
-
     obsorver.unobserve(entry.target)
     onRender(resp.data)
     imageObserver.observe(galleryEl.lastElementChild)
