@@ -21,22 +21,24 @@ async function onSubmit(e){
   
 
   const res = await onFetch();
-  limit=res.data.totalHits
+  limit=res.data.totalHits;
 
   onCheck(res.data);
   onRender(res.data);
+
+  if(galleryEl.innerHTML){
+    imageObserver.observe(galleryEl.lastElementChild)
+  };
 
   // варіант then()
   // onFetch().then(images =>{
   //   onCheck(images)
   //   onRender(images)
   // })
-  imageObserver.observe(galleryEl.lastElementChild)
-}
-
+  // e.target.reset()
+};
 
 const imageObserver = new IntersectionObserver(async ([entry], obsorver)=>{
-
   if(limit <= galleryEl.children.length){
     galleryEl.insertAdjacentHTML('beforeend',`<p class='end_galerry'>We're sorry, but you've reached the end of search results.</p>`)
     // Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
@@ -53,7 +55,7 @@ const imageObserver = new IntersectionObserver(async ([entry], obsorver)=>{
   }
 },
 {rootMargin: '150px',}
-)
+);
 
 async function onFetch(){
   const BASE_URL = 'https://pixabay.com/api/';
@@ -75,6 +77,7 @@ async function onFetch(){
   // варіант then()
   // return fetch(`${BASE_URL}?${options}&page=${page}`).then(response => response.json())
 };
+
 function onRender(images){
   let render ='';
 
@@ -103,11 +106,12 @@ images.hits.map(({webformatURL, largeImageURL, tags, likes, views, comments, dow
 galleryEl.insertAdjacentHTML('beforeend', render);
 slider.refresh();
 };
-function onCheck(res){
-  if(res.totalHits === 0){
+
+function onCheck(){
+  if(!limit){
     Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
     galleryEl.innerHTML = '';
   }else{
-    Notiflix.Notify.success(`Hooray! We found ${res.totalHits} images.`);
+    Notiflix.Notify.success(`Hooray! We found ${limit} images.`);
   };
 };
